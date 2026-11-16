@@ -29,3 +29,8 @@ jobs:
     with:
       working-directory: test/fixture
       run-e2e: false
+
+  deploy-hook:
+    name: Deploy hook without configuration
+    permissions: {}
+    uses: $/.github/workflows/deploy-hook.yml

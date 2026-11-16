@@ -72,6 +72,35 @@ jobs:
 This runs actionlint (correctness) and zizmor (security) on the calling
 repository.
 
+## Deploying after a green pipeline
+
+`deploy-hook.yml` requests the deploy hook of the hosting provider. It works
+with every host that offers one (Vercel, Netlify, Cloudflare, Coolify,
+Dokploy, Render and others):
+
+```yaml
+jobs:
+  deploy:
+    needs: [lint-workflows, ci]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions: {}
+    uses: project-website-1337/ci-workflows/.github/workflows/deploy-hook.yml@v1
+    secrets:
+      deploy-hook-url: ${{ secrets.DEPLOY_HOOK_URL }}
+      deploy-hook-token: ${{ secrets.DEPLOY_HOOK_TOKEN }}
+```
+
+Setup per project:
+
+1. Create a deploy hook at the host and turn off the host's own
+   deploy-on-push, so only commits that passed the pipeline go live.
+2. Store the URL as the repository secret `DEPLOY_HOOK_URL`. If the host
+   authenticates with a bearer token (Coolify), store it as
+   `DEPLOY_HOOK_TOKEN` and set `with: { method: GET }` if the host requires
+   it.
+
+Without the secret the job succeeds with a notice and deploys nothing.
+
 ## What the pipeline does
 
 Two jobs run in parallel:

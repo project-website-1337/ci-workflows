@@ -1,0 +1,68 @@
+# Reusable deployment trigger that works with any hosting provider.
+#
+# Almost every host (Vercel, Netlify, Cloudflare, Coolify, Dokploy, Render)
+# offers a "deploy hook": a secret URL that builds and publishes the latest
+# commit when it is requested. Calling it from CI instead of letting the host
+# deploy on every push means only commits that passed the pipeline go live.
+#
+# The calling job decides when to deploy (normally: push to main, after the
+# pipeline). Without a configured hook the job succeeds with a notice, so a
+# project that has no hosting yet stays green.
+name: Deploy hook (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      method:
+        description: HTTP method the host expects for its deploy hook (POST or GET).
+        type: string
+        default: POST
+    secrets:
+      deploy-hook-url:
+        description: Deploy hook URL of the hosting provider.
+        required: false
+      deploy-hook-token:
+        description: Bearer token, for hosts that authenticate the hook with a header.
+        required: false
+
+permissions: {}
+
+jobs:
+  deploy:
+    name: Trigger deployment
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - name: Call deploy hook
+        env:
+          DEPLOY_HOOK_URL: ${{ secrets.deploy-hook-url }}
+          DEPLOY_HOOK_TOKEN: ${{ secrets.deploy-hook-token }}
+          DEPLOY_HOOK_METHOD: ${{ inputs.method }}
+        run: |
+          if [ -z "${DEPLOY_HOOK_URL}" ]; then
+            echo "::notice::No deploy hook configured (secret DEPLOY_HOOK_URL). Skipping deployment."
+            exit 0
+          fi
+
+          case "${DEPLOY_HOOK_METHOD}" in
+            POST | GET) ;;
+            *)
+              echo "::error::Unsupported deploy hook method: ${DEPLOY_HOOK_METHOD}"
+              exit 1
+              ;;
+          esac
+
+          curl_args=(
+            --fail --silent --show-error
+            --output /dev/null
+            --request "${DEPLOY_HOOK_METHOD}"
+            --retry 3 --retry-all-errors --retry-delay 5
+            --max-time 30
+          )
+          if [ -n "${DEPLOY_HOOK_TOKEN}" ]; then
+            curl_args+=(--header "Authorization: Bearer ${DEPLOY_HOOK_TOKEN}")
+          fi
+
+          curl "${curl_args[@]}" "${DEPLOY_HOOK_URL}"
+          echo "::notice::Deployment triggered."
