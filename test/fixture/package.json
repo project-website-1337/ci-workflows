@@ -1,0 +1,17 @@
+{
+  "name": "ci-workflows-fixture",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Minimal project that exercises the reusable CI pipeline.",
+  "type": "module",
+  "packageManager": "pnpm@12.15.0",
+  "scripts": {
+    "lint": "node --check src/index.js",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test",
+    "build": "node -e \"console.log('build ok')\""
+  },
+  "devDependencies": {
+    "typescript": "^6.0.0"
+  }
+}

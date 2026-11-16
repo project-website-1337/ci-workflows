@@ -1,0 +1,6 @@
+# actionlint 1.7.12 predates GitHub's self-repository syntax (`uses: $/...`,
+# July 2026) and reports it as invalid. Remove this once actionlint supports it.
+paths:
+  .github/workflows/self-test.yml:
+    ignore:
+      - 'reusable workflow call "\$/.+" at "uses" is not following the format'
