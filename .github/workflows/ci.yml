@@ -1,7 +1,8 @@
 # Reusable CI pipeline for all client website projects.
 #
 # Contract: the calling project must provide these package.json scripts:
-#   lint, typecheck, test, build, and (if run-e2e is true) test:e2e
+#   lint, typecheck, test, build (unless run-build is false), and
+#   test:e2e (if run-e2e is true)
 #
 # Design notes:
 # - GitHub bills every job rounded up to a full minute and every job pays the
@@ -22,6 +23,10 @@ on:
         description: File that defines the Node.js version, relative to working-directory.
         type: string
         default: ".nvmrc"
+      run-build:
+        description: Run the production build (script "build"). Disable for repositories without a build step.
+        type: boolean
+        default: true
       run-e2e:
         description: Run Playwright end-to-end tests (script "test:e2e").
         type: boolean
@@ -86,6 +91,7 @@ jobs:
         run: pnpm run test
 
       - name: Restore Next.js build cache
+        if: inputs.run-build
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ inputs.working-directory }}/.next/cache
@@ -94,6 +100,7 @@ jobs:
             nextjs-${{ runner.os }}-${{ hashFiles(format('{0}/pnpm-lock.yaml', inputs.working-directory)) }}-
 
       - name: Build
+        if: inputs.run-build
         run: pnpm run build
 
       - name: Resolve Playwright version

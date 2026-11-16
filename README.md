@@ -38,7 +38,7 @@ The project must provide these `package.json` scripts:
 | `lint`      | Lint and format check                           |
 | `typecheck` | TypeScript type check                           |
 | `test`      | Unit tests                                      |
-| `build`     | Production build                                |
+| `build`     | Production build (unless `run-build` is off)    |
 | `test:e2e`  | Playwright tests (only if `run-e2e` is enabled) |
 
 It must also define `packageManager` in `package.json`, commit
@@ -50,6 +50,7 @@ It must also define `packageManager` in `package.json`, commit
 | --------------------- | ----------------------------------------------- | ---------------------------------------------------- |
 | `working-directory`   | `.`                                             | Directory that contains `package.json`               |
 | `node-version-file`   | `.nvmrc`                                        | Node.js version file, relative to working directory  |
+| `run-build`           | `true`                                          | Run the production build                             |
 | `run-e2e`             | `true`                                          | Run Playwright end-to-end tests                      |
 | `playwright-browsers` | `chromium`                                      | Space-separated browsers to install                  |
 | `audit-level`         | `high`                                          | Minimum severity that fails the dependency audit     |
