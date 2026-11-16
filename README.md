@@ -56,6 +56,21 @@ It must also define `packageManager` in `package.json`, commit
 | `run-semgrep`         | `true`                                          | Run Semgrep static security analysis                 |
 | `semgrep-config`      | `p/typescript p/react p/nextjs p/owasp-top-ten` | Space-separated Semgrep rule sets                    |
 
+## Linting workflow files
+
+Every repository that contains workflows should also lint them:
+
+```yaml
+jobs:
+  lint-workflows:
+    permissions:
+      contents: read
+    uses: project-website-1337/ci-workflows/.github/workflows/lint-workflows.yml@v1
+```
+
+This runs actionlint (correctness) and zizmor (security) on the calling
+repository.
+
 ## What the pipeline does
 
 Two jobs run in parallel:
@@ -91,7 +106,7 @@ tag (`v2`), so existing projects keep working until they are migrated.
 
 ## Self-test
 
-`.github/workflows/self-test.yml` lints all workflows with actionlint and
-zizmor and runs the reusable pipeline against the minimal project in
+`.github/workflows/self-test.yml` calls `lint-workflows.yml` on this
+repository and runs the reusable pipeline against the minimal project in
 `test/fixture`. The fixture covers the pipeline plumbing; the Playwright path
 is exercised by the projects that use it.
