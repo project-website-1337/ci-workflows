@@ -17,33 +17,9 @@ permissions: {}
 jobs:
   lint-workflows:
     name: Lint workflows
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
     permissions:
       contents: read
-    env:
-      ACTIONLINT_VERSION: "1.7.12"
-      ACTIONLINT_SHA256: 8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8
-      ZIZMOR_VERSION: "1.32.0"
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Run actionlint
-        run: |
-          archive="actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
-          curl --fail --silent --show-error --location --output "${RUNNER_TEMP}/${archive}" \
-            "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/${archive}"
-          echo "${ACTIONLINT_SHA256}  ${RUNNER_TEMP}/${archive}" | sha256sum --check --quiet
-          tar --extract --gzip --file "${RUNNER_TEMP}/${archive}" --directory "${RUNNER_TEMP}" actionlint
-          "${RUNNER_TEMP}/actionlint" -color
-
-      - name: Run zizmor
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: pipx run "zizmor==${ZIZMOR_VERSION}" --pedantic .
+    uses: $/.github/workflows/lint-workflows.yml
 
   ci:
     name: Pipeline against fixture
