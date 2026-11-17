@@ -59,9 +59,18 @@ It must also define `packageManager` in `package.json`, commit
 
 ## Linting workflow files
 
-Every repository that contains workflows should also lint them:
+Every repository that contains workflows should also lint them. A
+separate workflow that runs only when `.github/` changes keeps ordinary
+pushes from paying a billed minute for it:
 
 ```yaml
+on:
+  pull_request:
+    paths: [".github/**"]
+  push:
+    branches: [main]
+    paths: [".github/**"]
+
 jobs:
   lint-workflows:
     permissions:
@@ -81,8 +90,8 @@ Dokploy, Render and others):
 ```yaml
 jobs:
   deploy:
-    needs: [lint-workflows, ci]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [ci]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.DEPLOY_ENABLED == 'true'
     permissions: {}
     uses: project-website-1337/ci-workflows/.github/workflows/deploy-hook.yml@v1
     secrets:
@@ -98,6 +107,9 @@ Setup per project:
    authenticates with a bearer token (Coolify), store it as
    `DEPLOY_HOOK_TOKEN` and set `with: { method: GET }` if the host requires
    it.
+
+3. Set the repository variable `DEPLOY_ENABLED` to `true`. Without it the
+   job is skipped, so repositories without a host pay no minute for it.
 
 Without the secret the job succeeds with a notice and deploys nothing.
 
