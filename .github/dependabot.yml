@@ -1,0 +1,17 @@
+# Keeps the commit SHA pins of third-party actions current. Every project
+# runs these pins through the reusable workflows, so this is the only place
+# they are updated. One grouped pull request per month; security updates
+# are opened immediately and independently of this schedule.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+      time: "06:00"
+      timezone: Europe/Berlin
+    cooldown:
+      default-days: 7
+    groups:
+      actions:
+        patterns: ["*"]
