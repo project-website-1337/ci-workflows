@@ -94,6 +94,8 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.DEPLOY_ENABLED == 'true'
     permissions: {}
     uses: project-website-1337/ci-workflows/.github/workflows/deploy-hook.yml@v1
+    with:
+      require-hook: true
     secrets:
       deploy-hook-url: ${{ secrets.DEPLOY_HOOK_URL }}
       deploy-hook-token: ${{ secrets.DEPLOY_HOOK_TOKEN }}
@@ -111,7 +113,9 @@ Setup per project:
 3. Set the repository variable `DEPLOY_ENABLED` to `true`. Without it the
    job is skipped, so repositories without a host pay no minute for it.
 
-Without the secret the job succeeds with a notice and deploys nothing.
+Without the secret the job succeeds with a notice and deploys nothing,
+unless the caller sets `require-hook: true`: then a missing secret fails the
+run, so a deleted or rotated secret cannot silently stop deployments.
 
 ## What the pipeline does
 

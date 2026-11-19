@@ -7,7 +7,9 @@
 #
 # The calling job decides when to deploy (normally: push to main, after the
 # pipeline). Without a configured hook the job succeeds with a notice, so a
-# project that has no hosting yet stays green.
+# project that has no hosting yet stays green; a caller that has turned
+# deployment on passes `require-hook: true`, so a missing or deleted secret
+# fails the run instead of silently deploying nothing.
 name: Deploy hook (reusable)
 
 on:
@@ -17,6 +19,10 @@ on:
         description: HTTP method the host expects for its deploy hook (POST or GET).
         type: string
         default: POST
+      require-hook:
+        description: Fail instead of skipping when no deploy hook URL is configured.
+        type: boolean
+        default: false
     secrets:
       deploy-hook-url:
         description: Deploy hook URL of the hosting provider.
@@ -39,8 +45,13 @@ jobs:
           DEPLOY_HOOK_URL: ${{ secrets.deploy-hook-url }}
           DEPLOY_HOOK_TOKEN: ${{ secrets.deploy-hook-token }}
           DEPLOY_HOOK_METHOD: ${{ inputs.method }}
+          REQUIRE_HOOK: ${{ inputs.require-hook }}
         run: |
           if [ -z "${DEPLOY_HOOK_URL}" ]; then
+            if [ "${REQUIRE_HOOK}" = "true" ]; then
+              echo "::error::Deployment is enabled, but the secret DEPLOY_HOOK_URL is missing. Nothing was deployed."
+              exit 1
+            fi
             echo "::notice::No deploy hook configured (secret DEPLOY_HOOK_URL). Skipping deployment."
             exit 0
           fi
